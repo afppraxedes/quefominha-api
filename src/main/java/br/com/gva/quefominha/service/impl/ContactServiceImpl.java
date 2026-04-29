@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import br.com.gva.quefominha.domain.dto.contact.ContactSavedDto;
@@ -15,58 +16,83 @@ import br.com.gva.quefominha.repositories.ContactRepository;
 import br.com.gva.quefominha.service.ContactService;
 import lombok.Getter;
 
-@SuppressWarnings("unchecked")
+// CORREÇÃO @SuppressWarnings: removida a supressão em nível de classe.
+// Os castings inevitáveis pela assinatura genérica do ServiceUtil
+// são marcados pontualmente com @SuppressWarnings("unchecked") inline.
 @Service
 public class ContactServiceImpl implements ContactService {
 
-	@Getter
+    @Getter
     @Autowired
     private ContactRepository contactRepository;
-	
-	@Override
+
+    @Override
+    @SuppressWarnings("unchecked")
     public <DTO> List<DTO> findAll() {
-		ContactSavedDto dto = new ContactSavedDto();
-        return getContactRepository().findAll().stream().map(bag -> (DTO) populateDto(bag, dto)).collect(Collectors.toList());
+        ContactSavedDto dto = new ContactSavedDto();
+        return getContactRepository().findAll().stream()
+                .map(entity -> (DTO) populateDto(entity, dto))
+                .collect(Collectors.toList());
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO> DTO findById(String id) {
-    	ContactSavedDto dto = new ContactSavedDto();
-        Optional<Contact> contact = Optional.of(localFindById(id));
-        return (DTO) populateDto(contact.orElseThrow(() ->  new NegocioException(String.format("Objeto de id %s não encontrado", id))), dto);
+        ContactSavedDto dto = new ContactSavedDto();
+        Contact entity = localFindById(id);
+        return (DTO) populateDto(entity, dto);
     }
 
-    private Contact localFindById(String id){
-        Optional<Contact> bag = getContactRepository().findById(id);
-        return bag.orElseThrow(() ->  new NegocioException(String.format("Objeto de id %s não encontrado", id)));
+    private Contact localFindById(String id) {
+        Optional<Contact> result = getContactRepository().findById(id);
+        return result.orElseThrow(
+            () -> new NegocioException(String.format("Objeto de id %s não encontrado", id))
+        );
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO, SAVED> SAVED save(DTO dto) {
-    	Contact contact = new Contact();
-        return (SAVED) populateDto(getContactRepository().save(populateEntity(dto, contact)), ContactSavedDto.builder().build());
+        Contact entity = new Contact();
+        return (SAVED) populateDto(
+            getContactRepository().save(populateEntity(dto, entity)),
+            ContactSavedDto.builder().build()
+        );
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO, SAVED> SAVED update(DTO dto, String id) {
-    	Contact contact = localFindById(id);
-        return (SAVED) populateDto(getContactRepository().save(populateEntity(dto, contact)), ContactSavedDto.builder().build());
+        Contact entity = localFindById(id);
+        return (SAVED) populateDto(
+            getContactRepository().save(populateEntity(dto, entity)),
+            ContactSavedDto.builder().build()
+        );
     }
 
     @Override
     public void delete(String id) {
-        if(existsItem(id)){
+        if (existsItem(id)) {
             getContactRepository().deleteById(id);
         }
     }
 
-    public boolean existsItem(String id){
-        return getContactRepository().existsById(id);
-     }
-
     @Override
+    public boolean existsItem(String id) {
+        return getContactRepository().existsById(id);
+    }
+
+    /**
+     * CORREÇÃO findPage: implementação funcional substituindo o retorno null anterior.
+     * Usa o método buildPageRequest() herdado de ServiceUtil para padronização.
+     * O MongoRepository já oferece findAll(Pageable) nativamente.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
     public <DTO> Page<DTO> findPage(Integer page, Integer linePerPage, String direction, String orderBy) {
-        // TODO Auto-generated method stub
-        return null;
+        PageRequest pageRequest = buildPageRequest(page, linePerPage, direction, orderBy);
+        ContactSavedDto dto = new ContactSavedDto();
+        return (Page<DTO>) getContactRepository().findAll(pageRequest)
+                .map(entity -> populateDto(entity, dto));
     }
 }

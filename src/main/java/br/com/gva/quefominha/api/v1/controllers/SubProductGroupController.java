@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -36,6 +38,17 @@ public class SubProductGroupController {
     public ResponseEntity<List<SubProductGroupSavedDto>> findAll() {    
         return ResponseEntity.ok(getSubProductGroupService().findAll());
     }
+	
+	@GetMapping("/page")
+	public ResponseEntity<Page<SubProductGroupSavedDto>> findPage(
+	        @RequestParam(defaultValue = "0")  Integer page,
+	        @RequestParam(defaultValue = "10") Integer linePerPage,
+	        @RequestParam(defaultValue = "ASC") String direction,
+	        @RequestParam(defaultValue = "name") String orderBy) {
+	    return ResponseEntity.ok(
+	        getSubProductGroupService().findPage(page, linePerPage, direction, orderBy)
+	    );
+	}
 
     @GetMapping("/{id}")
     public ResponseEntity<SubProductGroupSavedDto> findById(@PathVariable String id) throws ResourceNotFoundException {

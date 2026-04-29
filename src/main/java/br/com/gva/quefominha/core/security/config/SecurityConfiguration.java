@@ -1,7 +1,9 @@
 package br.com.gva.quefominha.core.security.config;
 
 import java.util.Arrays;
+import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,59 +25,50 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-	private final JwtAuthenticationFilter jwtAuthFilter;
-	private final AuthenticationProvider authenticationProvider;
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final AuthenticationProvider authenticationProvider;
 
-	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		
-		http.exceptionHandling().authenticationEntryPoint(new AuthExceptionEntryPoint());
-		
-		http
-			.cors()
-			.and()
-			.authorizeHttpRequests()
-				// "/api/v1/auth/restaurants/**"
-				.requestMatchers("/api/v1/auth/security/**").permitAll()
-				.requestMatchers(HttpMethod.GET, "/api/v1/auth/restaurants/**").permitAll()
-			.anyRequest().authenticated()
-			.and()
-			.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-			.and()
-			.csrf().disable()
-			.authenticationProvider(authenticationProvider)
-			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+    // CORREÇÃO 3: origens permitidas lidas do application.properties,
+    // sem hardcode de "localhost" no código-fonte.
+    @Value("${cors.allowed-origins}")
+    private String[] allowedOrigins;
 
-		return http.build();
-	}
-	
-//	@Bean
-//	CorsConfigurationSource corsConfigurationSource() {
-//		CorsConfiguration configuration = new CorsConfiguration();
-//		configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
-//		configuration.setAllowedMethods(Arrays.asList("GET","POST"));
-//		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//		source.registerCorsConfiguration("/**", configuration);
-//		return source;
-//	}
-	
-	
-	// TODO: colocar uma melhor abordagem depois!
-	@Bean
-	public CorsFilter corsFilter() {
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-		CorsConfiguration config = new CorsConfiguration();
-		String[] origensPermitidas = {"http://localhost:4200", "http://localhost:4300"};
-		
-		config.setAllowCredentials(true);
-		config.addAllowedHeader("*");
-		config.addAllowedMethod("*");
-		config.setMaxAge(3600L);
-		config.setAllowedOrigins(Arrays.asList(origensPermitidas));
-		
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", config);
-		
-		return new CorsFilter(source);
-	}
+        http.exceptionHandling().authenticationEntryPoint(new AuthExceptionEntryPoint());
+
+        http
+            .cors()
+            .and()
+            .authorizeHttpRequests()
+                .requestMatchers("/api/v1/auth/security/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/auth/restaurants/**").permitAll()
+            .anyRequest().authenticated()
+            .and()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .csrf().disable()
+            .authenticationProvider(authenticationProvider)
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        // CORREÇÃO 3 aplicada: origens lidas do properties (configurável por ambiente)
+        config.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        config.setAllowCredentials(true);
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return new CorsFilter(source);
+    }
 }

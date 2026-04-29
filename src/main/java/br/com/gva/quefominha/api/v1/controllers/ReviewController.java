@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -41,6 +42,17 @@ public class ReviewController {
     public ResponseEntity<List<ReviewSavedDto>> findAll() {    
         return ResponseEntity.ok(getReviewService().findAll());
     }
+	
+	@GetMapping("/page")
+	public ResponseEntity<Page<ReviewSavedDto>> findPage(
+	        @RequestParam(defaultValue = "0")  Integer page,
+	        @RequestParam(defaultValue = "10") Integer linePerPage,
+	        @RequestParam(defaultValue = "ASC") String direction,
+	        @RequestParam(defaultValue = "name") String orderBy) {
+	    return ResponseEntity.ok(
+	        getReviewService().findPage(page, linePerPage, direction, orderBy)
+	    );
+	}
 	
 	// Lista os reviews pelo ID do Restaurant
     @GetMapping("/{restaurantId}/reviews")

@@ -21,7 +21,6 @@ import br.com.gva.quefominha.repositories.AddressRepository;
 import br.com.gva.quefominha.service.AddressService;
 import lombok.Getter;
 
-@SuppressWarnings("unchecked")
 @Service
 public class AddressServiceImpl implements AddressService {
 
@@ -39,12 +38,14 @@ public class AddressServiceImpl implements AddressService {
 	
 
 	@Override
+	@SuppressWarnings("unchecked")
     public <DTO> List<DTO> findAll() {
 		return (List<DTO>) getAddressRepository().findAll();
 //        AddressSavedDto dto = new AddressSavedDto();
 //        return getAddressRepository().findAll().stream().map(product -> (DTO) populateDto(product, dto)).collect(Collectors.toList());
     }
 	
+	@SuppressWarnings("unchecked")
 	public <DTO> List<DTO> listByCustomer(String id) {
 		Optional<List<Address>> addressList = Optional.ofNullable(getAddressRepository().findByCustomer(id)
 				.orElseThrow(() -> new NegocioException(String.format("Objeto de id %s não encontrado", id))));
@@ -53,6 +54,7 @@ public class AddressServiceImpl implements AddressService {
 	}
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO> DTO findById(String id) {
     	AddressSavedDto dto = new AddressSavedDto();
         Optional<Address> address = Optional.of(localFindById(id));
@@ -65,6 +67,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO, SAVED> SAVED save(DTO dto) {
     	Address address = new Address();
     	String customerId = ((AddressSaveDto) dto).getCustomer().getId();
@@ -74,6 +77,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO, SAVED> SAVED update(DTO dto, String id) {
         Address address = localFindById(id);
 		Document document = new Document();
@@ -153,6 +157,7 @@ public class AddressServiceImpl implements AddressService {
 	}
 	
 	// TODO: verificar se a consulta está correta!
+	@SuppressWarnings("unchecked")
 	public <DTO> DTO searchPrimaryAddressByCustomer(String id, Boolean primary) {
 		Optional<Address> addressList = 
 				getAddressRepository().findByCustomerAndPrimary(id, primary);

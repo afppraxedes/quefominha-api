@@ -32,8 +32,8 @@ public class Contact {
     @JsonIgnore
     private Restaurant restaurant;
 
-    @DBRef
-    @JsonIgnore
-    private User user;
+//    @DBRef
+//    @JsonIgnore
+//    private User user;
     
 }

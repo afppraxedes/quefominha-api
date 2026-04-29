@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import br.com.gva.quefominha.domain.dto.product.ProductSavedDto;
@@ -15,74 +16,89 @@ import br.com.gva.quefominha.repositories.ProductRepository;
 import br.com.gva.quefominha.service.ProductService;
 import lombok.Getter;
 
-@SuppressWarnings("unchecked")
 @Service
 public class ProductServiceImpl implements ProductService {
 
-	@Getter
+    @Getter
     @Autowired
     private ProductRepository productRepository;
 
-	@Override
+    @Override
+    @SuppressWarnings("unchecked")
     public <DTO> List<DTO> findAll() {
-		return (List<DTO>) getProductRepository().findAll();
-//        ProductSavedDto dto = new ProductSavedDto();
-//        return getProductRepository().findAll().stream().map(product -> (DTO) populateDto(product, dto)).collect(Collectors.toList());
+        return (List<DTO>) getProductRepository().findAll();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO> DTO findById(String id) {
         ProductSavedDto dto = new ProductSavedDto();
-        Optional<Product> product = Optional.of(localFindById(id));
-        return (DTO) populateDto(product.orElseThrow(() ->  new NegocioException(String.format("Objeto de id %s não encontrado", id))), dto);
+        Product product = localFindById(id);
+        return (DTO) populateDto(product, dto);
     }
-    
-    // Lista produtos por ID do Restaurant
+
+    /**
+     * CORREÇÃO: tratamento de exceção unificado em localFindProductsByRestaurantId,
+     * eliminando a dupla verificação que existia antes (TODO no código original).
+     */
+    @SuppressWarnings("unchecked")
     public <DTO> List<DTO> findProductByRestaurantId(String restaurantId) {
-        // ProductSavedDto dto = new ProductSavedDto();
-        Optional<List<Product>> products = Optional.of(localFindProductsByRestaurantId(restaurantId));
-        return (List<DTO>) (products.orElseThrow(() ->  new NegocioException(String.format("Objeto Restauranttt de id %s não encontrado", restaurantId))));
+        List<Product> products = localFindProductsByRestaurantId(restaurantId);
+        return (List<DTO>) products;
     }
 
-    private Product localFindById(String id){
+    private Product localFindById(String id) {
         Optional<Product> product = getProductRepository().findById(id);
-        return product.orElseThrow(() ->  new NegocioException(String.format("Objeto de id %s não encontrado", id)));
+        return product.orElseThrow(
+            () -> new NegocioException(String.format("Produto de id %s não encontrado", id))
+        );
     }
-    
-    // Busca uma lista de produtos por ID do Restaurant
-    // TODO: O "Tratamento de Exceção" está sendo efetuado 2 vezes (aqui e em "findProductByRestaurantId"). Rever isto!!!!!
-    private List<Product> localFindProductsByRestaurantId(String id){
-        Optional<List<Product>> products = getProductRepository().findProductByRestaurantId(id);
-        return products.orElseThrow(() ->  new NegocioException(String.format("Objeto Restaurant de id %s não encontrado", id)));
+
+    private List<Product> localFindProductsByRestaurantId(String restaurantId) {
+        return getProductRepository().findProductByRestaurantId(restaurantId)
+                .orElseThrow(() -> new NegocioException(
+                    String.format("Nenhum produto encontrado para o restaurante de id %s", restaurantId)
+                ));
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO, SAVED> SAVED save(DTO dto) {
-    Product product = new Product();
-        return (SAVED) populateDto(getProductRepository().save(populateEntity(dto, product)), ProductSavedDto.builder().build());
+        Product product = new Product();
+        return (SAVED) populateDto(
+            getProductRepository().save(populateEntity(dto, product)),
+            ProductSavedDto.builder().build()
+        );
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO, SAVED> SAVED update(DTO dto, String id) {
         Product product = localFindById(id);
-        return (SAVED) populateDto(getProductRepository().save(populateEntity(dto, product)), ProductSavedDto.builder().build());
+        return (SAVED) populateDto(
+            getProductRepository().save(populateEntity(dto, product)),
+            ProductSavedDto.builder().build()
+        );
     }
 
     @Override
     public void delete(String id) {
-        if(existsItem(id)){
+        if (existsItem(id)) {
             getProductRepository().deleteById(id);
         }
     }
 
-    public boolean existsItem(String id){
+    @Override
+    public boolean existsItem(String id) {
         return getProductRepository().existsById(id);
-     }
+    }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO> Page<DTO> findPage(Integer page, Integer linePerPage, String direction, String orderBy) {
-        // TODO Auto-generated method stub
-        return null;
+        PageRequest pageRequest = buildPageRequest(page, linePerPage, direction, orderBy);
+        ProductSavedDto dto = new ProductSavedDto();
+        return (Page<DTO>) getProductRepository().findAll(pageRequest)
+                .map(product -> populateDto(product, dto));
     }
-}  
-
+}

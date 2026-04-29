@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,12 +13,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.gva.quefominha.domain.dto.coupon.CouponSaveDto;
 import br.com.gva.quefominha.domain.dto.coupon.CouponSavedDto;
 import br.com.gva.quefominha.domain.dto.coupon.CouponUpdateDto;
+import br.com.gva.quefominha.domain.enums.Status;
 import br.com.gva.quefominha.exceptions.ResourceNotFoundException;
 import br.com.gva.quefominha.service.CouponService;
 import jakarta.validation.Valid;
@@ -35,6 +38,17 @@ public class CouponController {
     public ResponseEntity<List<CouponSavedDto>> findAll() {    
         return ResponseEntity.ok(getCouponService().findAll());
     }
+	
+	@GetMapping("/page")
+	public ResponseEntity<Page<CouponSavedDto>> findPage(
+	        @RequestParam(defaultValue = "0")  Integer page,
+	        @RequestParam(defaultValue = "10") Integer linePerPage,
+	        @RequestParam(defaultValue = "ASC") String direction,
+	        @RequestParam(defaultValue = "name") Status orderBy) {
+	    return ResponseEntity.ok(
+	        getCouponService().findPage(page, linePerPage, direction, orderBy.toString())
+	    );
+	}
 
     @GetMapping("/{id}")
     public ResponseEntity<CouponSavedDto> findById(@PathVariable String id) throws ResourceNotFoundException {

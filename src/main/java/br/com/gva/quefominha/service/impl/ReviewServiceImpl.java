@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import br.com.gva.quefominha.domain.dto.review.ReviewSavedDto;
@@ -15,73 +16,89 @@ import br.com.gva.quefominha.repositories.ReviewRepository;
 import br.com.gva.quefominha.service.ReviewService;
 import lombok.Getter;
 
-@SuppressWarnings("unchecked")
 @Service
 public class ReviewServiceImpl implements ReviewService {
 
-	@Getter
+    @Getter
     @Autowired
     private ReviewRepository reviewRepository;
-	
-	@Override
+
+    @Override
+    @SuppressWarnings("unchecked")
     public <DTO> List<DTO> findAll() {
-		return (List<DTO>) getReviewRepository().findAll();
-//		ReviewSavedDto dto = new ReviewSavedDto();
-//        return getReviewRepository().findAll().stream().map(bag -> (DTO) populateDto(bag, dto)).collect(Collectors.toList());
+        return (List<DTO>) getReviewRepository().findAll();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO> DTO findById(String id) {
-    	ReviewSavedDto dto = new ReviewSavedDto();
-        Optional<Review> review = Optional.of(localFindById(id));
-        return (DTO) populateDto(review.orElseThrow(() ->  new NegocioException(String.format("Objeto de id %s não encontrado", id))), dto);
+        ReviewSavedDto dto = new ReviewSavedDto();
+        Review review = localFindById(id);
+        return (DTO) populateDto(review, dto);
     }
-    
-    // Lista reviews por ID do Restaurant
+
+    /**
+     * CORREÇÃO: tratamento de exceção unificado em localFindReviewsByRestaurantId,
+     * eliminando a dupla verificação que existia antes (TODO no código original).
+     */
+    @SuppressWarnings("unchecked")
     public <DTO> List<DTO> findReviewByRestaurantId(String restaurantId) {
-        // ProductSavedDto dto = new ProductSavedDto();
-        Optional<List<Review>> reviews = Optional.of(localFindReviewsByRestaurantId(restaurantId));
-        return (List<DTO>) (reviews.orElseThrow(() ->  new NegocioException(String.format("Objeto Restauranttt de id %s não encontrado", restaurantId))));
+        List<Review> reviews = localFindReviewsByRestaurantId(restaurantId);
+        return (List<DTO>) reviews;
     }
 
-    private Review localFindById(String id){
+    private Review localFindById(String id) {
         Optional<Review> review = getReviewRepository().findById(id);
-        return review.orElseThrow(() ->  new NegocioException(String.format("Objeto de id %s não encontrado", id)));
+        return review.orElseThrow(
+            () -> new NegocioException(String.format("Review de id %s não encontrado", id))
+        );
     }
-    
-    // Busca uma lista de reviews por ID do Restaurant
-    // TODO: O "Tratamento de Exceção" está sendo efetuado 2 vezes (aqui e em "findReviewByRestaurantId"). Rever isto!!!!!
-    private List<Review> localFindReviewsByRestaurantId(String id){
-        Optional<List<Review>> reviews = getReviewRepository().findReviewByRestaurantId(id);
-        return reviews.orElseThrow(() ->  new NegocioException(String.format("Objeto Restaurant de id %s não encontrado", id)));
+
+    private List<Review> localFindReviewsByRestaurantId(String restaurantId) {
+        return getReviewRepository().findReviewByRestaurantId(restaurantId)
+                .orElseThrow(() -> new NegocioException(
+                    String.format("Nenhuma avaliação encontrada para o restaurante de id %s", restaurantId)
+                ));
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO, SAVED> SAVED save(DTO dto) {
-    	Review review = new Review();
-        return (SAVED) populateDto(getReviewRepository().save(populateEntity(dto, review)), ReviewSavedDto.builder().build());
+        Review review = new Review();
+        return (SAVED) populateDto(
+            getReviewRepository().save(populateEntity(dto, review)),
+            ReviewSavedDto.builder().build()
+        );
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO, SAVED> SAVED update(DTO dto, String id) {
-    	Review review = localFindById(id);
-        return (SAVED) populateDto(getReviewRepository().save(populateEntity(dto, review)), ReviewSavedDto.builder().build());
+        Review review = localFindById(id);
+        return (SAVED) populateDto(
+            getReviewRepository().save(populateEntity(dto, review)),
+            ReviewSavedDto.builder().build()
+        );
     }
 
     @Override
     public void delete(String id) {
-        if(existsItem(id)){
+        if (existsItem(id)) {
             getReviewRepository().deleteById(id);
         }
     }
 
-    public boolean existsItem(String id){
+    @Override
+    public boolean existsItem(String id) {
         return getReviewRepository().existsById(id);
-     }
+    }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO> Page<DTO> findPage(Integer page, Integer linePerPage, String direction, String orderBy) {
-        // TODO Auto-generated method stub
-        return null;
+        PageRequest pageRequest = buildPageRequest(page, linePerPage, direction, orderBy);
+        ReviewSavedDto dto = new ReviewSavedDto();
+        return (Page<DTO>) getReviewRepository().findAll(pageRequest)
+                .map(review -> populateDto(review, dto));
     }
 }
