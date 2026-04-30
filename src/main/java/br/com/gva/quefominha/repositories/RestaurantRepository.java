@@ -10,9 +10,11 @@ import br.com.gva.quefominha.domain.entity.Category;
 import br.com.gva.quefominha.domain.entity.Restaurant;
 
 public interface RestaurantRepository extends MongoRepository<Restaurant, String> {
-    
-//	Page<Restaurant> findByNameLike(String name, Pageable pageable);
-	
-	Page<Restaurant> findDistinctByNameIgnoreCaseContainingAndCategoriesIn(String nome, List<Category> categorias, PageRequest pageRequest);
-	
+
+    // Busca existente (paginada por nome + categoria)
+    Page<Restaurant> findDistinctByNameIgnoreCaseContainingAndCategoriesIn(
+            String nome, List<Category> categorias, PageRequest pageRequest);
+
+    // Busca por nome (case-insensitive, contains) — usada pela barra de pesquisa
+    List<Restaurant> findByNameIgnoreCaseContaining(String name);
 }
