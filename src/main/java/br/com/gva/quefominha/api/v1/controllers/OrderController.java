@@ -17,6 +17,7 @@ import br.com.gva.quefominha.domain.dto.order.OrderSaveDto;
 import br.com.gva.quefominha.domain.dto.order.OrderSavedDto;
 import br.com.gva.quefominha.exceptions.ResourceNotFoundException;
 import br.com.gva.quefominha.service.OrderService;
+import br.com.gva.quefominha.service.impl.OrderServiceImpl;
 import jakarta.validation.Valid;
 import lombok.Getter;
 
@@ -38,30 +39,20 @@ public class OrderController {
         return ResponseEntity.ok(getOrderService().findById(id));
     }
 
+    // Histórico de pedidos do customer
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<List<OrderSavedDto>> findByCustomerId(@PathVariable String customerId) {
+        return ResponseEntity.ok(getOrderService().findByCustomerId(customerId));
+    }
+
     @PostMapping
     public ResponseEntity<Void> save(@RequestBody @Valid OrderSaveDto orderSaveDto) {
-        /*
-         * CORREÇÃO ClassCastException:
-         *
-         * O erro original era:
-         *   ((CustomerSavedDto) getOrderService().saveOrUpdate(orderSaveDto, null)).getId()
-         *
-         * O método saveOrUpdate() retorna o tipo genérico <SAVED>, que neste caso
-         * é sempre OrderSavedDto (pois OrderServiceImpl.save() retorna populateDto(..., OrderSavedDto)).
-         * O cast para CustomerSavedDto era claramente um erro de copiar/colar do CustomerController
-         * — a JVM lançava ClassCastException em runtime porque OrderSavedDto e CustomerSavedDto
-         * são tipos incompatíveis.
-         *
-         * Corrigido: cast para OrderSavedDto e import de CustomerSavedDto removido.
-         * O MongoTemplate foi removido também — não havia uso neste controller.
-         */
+        // CORREÇÃO ClassCastException: cast correto para OrderSavedDto
         OrderSavedDto saved = getOrderService().saveOrUpdate(orderSaveDto, null);
-
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(saved.getId())
                 .toUri();
-
         return ResponseEntity.created(uri).build();
     }
 }

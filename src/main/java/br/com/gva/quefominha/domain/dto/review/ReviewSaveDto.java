@@ -20,5 +20,5 @@ public class ReviewSaveDto {
 	private BigDecimal rating;
 	private String comments;
 	private Restaurant restaurant;
-	
+
 }

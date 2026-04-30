@@ -2,7 +2,7 @@ package br.com.gva.quefominha.domain.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -23,23 +23,28 @@ import lombok.NoArgsConstructor;
 @Document(collection = "orders")
 public class Order {
 
-	@Id
-	@EqualsAndHashCode.Include
+    @Id
+    @EqualsAndHashCode.Include
     private String id;
-    
+
     private LocalDateTime data;
     private Status status;
-    
+
     @DBRef
     private Customer customer;
-    
+
     @DBRef
     private Restaurant restaurant;
-    
+
     private BigDecimal subtotal;
     private BigDecimal deliveryTax;
     private BigDecimal amount;
-    private Set<Item> items;
-    private Payment payment;
 
+    // CORREÇÃO: era Set<Item> — o Set deduplicava itens com id=null
+    // (todos os itens novos chegam sem id do frontend),
+    // fazendo o pedido salvar apenas 1 item.
+    // List preserva todos os itens na ordem de inserção.
+    private List<Item> items;
+
+    private Payment payment;
 }

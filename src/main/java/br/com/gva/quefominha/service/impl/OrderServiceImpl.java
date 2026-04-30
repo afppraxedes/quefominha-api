@@ -16,9 +16,7 @@ import br.com.gva.quefominha.repositories.OrderRepository;
 import br.com.gva.quefominha.service.OrderService;
 import lombok.Getter;
 
-// CORREÇÃO @SuppressWarnings: removida a supressão em nível de classe.
-// Os castings inevitáveis pela assinatura genérica do ServiceUtil
-// são marcados pontualmente com @SuppressWarnings("unchecked") inline.
+@SuppressWarnings("unchecked")
 @Service
 public class OrderServiceImpl implements OrderService {
 
@@ -27,47 +25,51 @@ public class OrderServiceImpl implements OrderService {
     private OrderRepository orderRepository;
 
     @Override
-    @SuppressWarnings("unchecked")
     public <DTO> List<DTO> findAll() {
         OrderSavedDto dto = new OrderSavedDto();
         return getOrderRepository().findAll().stream()
-                .map(entity -> (DTO) populateDto(entity, dto))
+                .map(order -> (DTO) populateDto(order, dto))
                 .collect(Collectors.toList());
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    public List<OrderSavedDto> findByCustomerId(String customerId) {
+        return getOrderRepository().findByCustomerId(customerId).stream()
+                .map(order -> {
+                    OrderSavedDto dto = new OrderSavedDto();
+                    populateDto(order, dto);
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public <DTO> DTO findById(String id) {
         OrderSavedDto dto = new OrderSavedDto();
-        Order entity = localFindById(id);
-        return (DTO) populateDto(entity, dto);
+        Order order = localFindById(id);
+        return (DTO) populateDto(order, dto);
     }
 
     private Order localFindById(String id) {
-        Optional<Order> result = getOrderRepository().findById(id);
-        return result.orElseThrow(
-            () -> new NegocioException(String.format("Objeto de id %s não encontrado", id))
-        );
+        Optional<Order> order = getOrderRepository().findById(id);
+        return order.orElseThrow(
+                () -> new NegocioException(String.format("Objeto de id %s não encontrado", id)));
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <DTO, SAVED> SAVED save(DTO dto) {
-        Order entity = new Order();
+        Order order = new Order();
         return (SAVED) populateDto(
-            getOrderRepository().save(populateEntity(dto, entity)),
-            OrderSavedDto.builder().build()
-        );
+                getOrderRepository().save(populateEntity(dto, order)),
+                OrderSavedDto.builder().build());
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <DTO, SAVED> SAVED update(DTO dto, String id) {
-        Order entity = localFindById(id);
+        Order order = localFindById(id);
         return (SAVED) populateDto(
-            getOrderRepository().save(populateEntity(dto, entity)),
-            OrderSavedDto.builder().build()
-        );
+                getOrderRepository().save(populateEntity(dto, order)),
+                OrderSavedDto.builder().build());
     }
 
     @Override
@@ -82,17 +84,11 @@ public class OrderServiceImpl implements OrderService {
         return getOrderRepository().existsById(id);
     }
 
-    /**
-     * CORREÇÃO findPage: implementação funcional substituindo o retorno null anterior.
-     * Usa o método buildPageRequest() herdado de ServiceUtil para padronização.
-     * O MongoRepository já oferece findAll(Pageable) nativamente.
-     */
     @Override
-    @SuppressWarnings("unchecked")
     public <DTO> Page<DTO> findPage(Integer page, Integer linePerPage, String direction, String orderBy) {
         PageRequest pageRequest = buildPageRequest(page, linePerPage, direction, orderBy);
         OrderSavedDto dto = new OrderSavedDto();
         return (Page<DTO>) getOrderRepository().findAll(pageRequest)
-                .map(entity -> populateDto(entity, dto));
+                .map(order -> populateDto(order, dto));
     }
 }

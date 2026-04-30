@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import br.com.gva.quefominha.domain.dto.order.OrderSavedDto;
+
 /**
  * Contrato base para todos os services do sistema.
  *
@@ -57,7 +59,7 @@ public interface ServiceUtil<T> {
     void delete(String id);
 
     boolean existsItem(String id);
-
+    
     /**
      * Copia propriedades do DTO para a entidade usando BeanUtils.
      * O casting é seguro pelo contrato de uso: dto e savedObj

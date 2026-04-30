@@ -2,7 +2,7 @@ package br.com.gva.quefominha.domain.dto.order;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 import br.com.gva.quefominha.domain.entity.Customer;
 import br.com.gva.quefominha.domain.entity.Item;
@@ -27,7 +27,7 @@ public class OrderSaveDto {
 	private BigDecimal subtotal;
 	private BigDecimal deliveryTax;
 	private BigDecimal amount;
-	private Set<Item> items;
+	private List<Item> items; // era Set<Item>
 	private Payment payment;
-	
+
 }
