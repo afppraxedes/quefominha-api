@@ -88,9 +88,17 @@ public class CustomerServiceImpl implements CustomerService {
 
         // Preserva a senha atual — update de dados pessoais não altera senha
         String currentPassword = customer.getPassword();
+        
+        // TODO: Após implementar o "Módulo Administrativo" refazer, pois o admin
+        // poderá alterar o "Tipo de Perfil"!
+        // Preserva o perfil atual — update de dados pessoais não altera o perfil
+        Role currentRole = customer.getRole();
 
         populateEntity(dto, customer);
 
+        // Define o perfil definido no cadastro
+        customer.setRole(currentRole);
+        
         // Restaura a senha após o populateEntity para evitar sobrescrita acidental
         customer.setPassword(currentPassword);
 
