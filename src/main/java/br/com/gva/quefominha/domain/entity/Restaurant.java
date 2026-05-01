@@ -22,26 +22,34 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Restaurant {
-    
+
     @EqualsAndHashCode.Include
     @Id
     private String id;
     private String name;
     private String cnpj;
     private String about;
-    @JsonIgnore
+
+    // CORREÇÃO: @JsonIgnore removido — rating precisa chegar no frontend
+    // para exibição da média de estrelas nos cards de restaurante.
+    // A média é calculada e persistida pelo ReviewServiceImpl ao salvar uma avaliação.
     private BigDecimal rating;
+
     private String imagePath;
+
     @JsonIgnore
-    private List<Product> menu;    
+    private List<Product> menu;
+
     @DBRef
-//    @JsonIgnore
-    private List<OpeningHours> openingHours;    
+    private List<OpeningHours> openingHours;
+
     @DBRef
     private Address address;
+
     @DBRef
     @JsonIgnore
-    private List<Contact> contact;    
+    private List<Contact> contact;
+
     @DBRef
     @JsonIgnore
     private List<Category> categories;
