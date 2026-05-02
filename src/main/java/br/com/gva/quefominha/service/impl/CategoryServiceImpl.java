@@ -2,7 +2,6 @@ package br.com.gva.quefominha.service.impl;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,9 +15,6 @@ import br.com.gva.quefominha.repositories.CategoryRepository;
 import br.com.gva.quefominha.service.CategoryService;
 import lombok.Getter;
 
-// CORREÇÃO @SuppressWarnings: removida a supressão em nível de classe.
-// Os castings inevitáveis pela assinatura genérica do ServiceUtil
-// são marcados pontualmente com @SuppressWarnings("unchecked") inline.
 @Service
 public class CategoryServiceImpl implements CategoryService {
 
@@ -29,18 +25,16 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @SuppressWarnings("unchecked")
     public <DTO> List<DTO> findAll() {
-        CategorySavedDto dto = new CategorySavedDto();
-        return getCategoryRepository().findAll().stream()
-                .map(entity -> (DTO) populateDto(entity, dto))
-                .collect(Collectors.toList());
+        return (List<DTO>) getCategoryRepository().findAll().stream()
+                .map(entity -> populateDto(entity, new CategorySavedDto()))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <DTO> DTO findById(String id) {
-        CategorySavedDto dto = new CategorySavedDto();
         Category entity = localFindById(id);
-        return (DTO) populateDto(entity, dto);
+        return (DTO) populateDto(entity, new CategorySavedDto());
     }
 
     private Category localFindById(String id) {
@@ -82,17 +76,11 @@ public class CategoryServiceImpl implements CategoryService {
         return getCategoryRepository().existsById(id);
     }
 
-    /**
-     * CORREÇÃO findPage: implementação funcional substituindo o retorno null anterior.
-     * Usa o método buildPageRequest() herdado de ServiceUtil para padronização.
-     * O MongoRepository já oferece findAll(Pageable) nativamente.
-     */
     @Override
     @SuppressWarnings("unchecked")
     public <DTO> Page<DTO> findPage(Integer page, Integer linePerPage, String direction, String orderBy) {
         PageRequest pageRequest = buildPageRequest(page, linePerPage, direction, orderBy);
-        CategorySavedDto dto = new CategorySavedDto();
         return (Page<DTO>) getCategoryRepository().findAll(pageRequest)
-                .map(entity -> populateDto(entity, dto));
+                .map(entity -> populateDto(entity, new CategorySavedDto()));
     }
 }

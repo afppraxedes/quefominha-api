@@ -8,6 +8,6 @@ import br.com.gva.quefominha.utils.ServiceUtil;
 
 public interface OrderService extends ServiceUtil<Order> {
 	
-	List<OrderSavedDto> findByCustomerId(String customerId);
+//	List<OrderSavedDto> findByCustomerId(String customerId);
 	
 }

@@ -16,7 +16,6 @@ import br.com.gva.quefominha.repositories.OrderRepository;
 import br.com.gva.quefominha.service.OrderService;
 import lombok.Getter;
 
-@SuppressWarnings("unchecked")
 @Service
 public class OrderServiceImpl implements OrderService {
 
@@ -25,51 +24,51 @@ public class OrderServiceImpl implements OrderService {
     private OrderRepository orderRepository;
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO> List<DTO> findAll() {
-        OrderSavedDto dto = new OrderSavedDto();
-        return getOrderRepository().findAll().stream()
-                .map(order -> (DTO) populateDto(order, dto))
+        return (List<DTO>) getOrderRepository().findAll().stream()
+                .map(order -> populateDto(order, new OrderSavedDto()))
                 .collect(Collectors.toList());
     }
 
-    @Override
+    // Histórico de pedidos por customer — usado pelo OrderController
     public List<OrderSavedDto> findByCustomerId(String customerId) {
         return getOrderRepository().findByCustomerId(customerId).stream()
-                .map(order -> {
-                    OrderSavedDto dto = new OrderSavedDto();
-                    populateDto(order, dto);
-                    return dto;
-                })
+                .map(order -> (OrderSavedDto) populateDto(order, new OrderSavedDto()))
                 .collect(Collectors.toList());
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO> DTO findById(String id) {
-        OrderSavedDto dto = new OrderSavedDto();
-        Order order = localFindById(id);
-        return (DTO) populateDto(order, dto);
+        return (DTO) populateDto(localFindById(id), new OrderSavedDto());
     }
 
     private Order localFindById(String id) {
         Optional<Order> order = getOrderRepository().findById(id);
         return order.orElseThrow(
-                () -> new NegocioException(String.format("Objeto de id %s não encontrado", id)));
+            () -> new NegocioException(String.format("Objeto de id %s não encontrado", id))
+        );
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO, SAVED> SAVED save(DTO dto) {
         Order order = new Order();
         return (SAVED) populateDto(
-                getOrderRepository().save(populateEntity(dto, order)),
-                OrderSavedDto.builder().build());
+            getOrderRepository().save(populateEntity(dto, order)),
+            OrderSavedDto.builder().build()
+        );
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO, SAVED> SAVED update(DTO dto, String id) {
         Order order = localFindById(id);
         return (SAVED) populateDto(
-                getOrderRepository().save(populateEntity(dto, order)),
-                OrderSavedDto.builder().build());
+            getOrderRepository().save(populateEntity(dto, order)),
+            OrderSavedDto.builder().build()
+        );
     }
 
     @Override
@@ -85,10 +84,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <DTO> Page<DTO> findPage(Integer page, Integer linePerPage, String direction, String orderBy) {
         PageRequest pageRequest = buildPageRequest(page, linePerPage, direction, orderBy);
-        OrderSavedDto dto = new OrderSavedDto();
         return (Page<DTO>) getOrderRepository().findAll(pageRequest)
-                .map(order -> populateDto(order, dto));
+                .map(order -> populateDto(order, new OrderSavedDto()));
     }
 }

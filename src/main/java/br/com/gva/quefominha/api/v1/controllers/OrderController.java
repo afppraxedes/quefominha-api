@@ -28,6 +28,10 @@ public class OrderController {
     @Getter
     @Autowired
     private OrderService orderService;
+    
+    @Getter
+    @Autowired
+    private OrderServiceImpl orderServiceImpl;
 
     @GetMapping
     public ResponseEntity<List<OrderSavedDto>> findAll() {
@@ -42,7 +46,7 @@ public class OrderController {
     // Histórico de pedidos do customer
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<List<OrderSavedDto>> findByCustomerId(@PathVariable String customerId) {
-        return ResponseEntity.ok(getOrderService().findByCustomerId(customerId));
+        return ResponseEntity.ok(getOrderServiceImpl().findByCustomerId(customerId));
     }
 
     @PostMapping

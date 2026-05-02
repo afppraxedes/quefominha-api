@@ -30,9 +30,7 @@ public class Restaurant {
     private String cnpj;
     private String about;
 
-    // CORREÇÃO: @JsonIgnore removido — rating precisa chegar no frontend
-    // para exibição da média de estrelas nos cards de restaurante.
-    // A média é calculada e persistida pelo ReviewServiceImpl ao salvar uma avaliação.
+    // @JsonIgnore REMOVIDO — rating precisa chegar no frontend
     private BigDecimal rating;
 
     private String imagePath;
@@ -51,6 +49,6 @@ public class Restaurant {
     private List<Contact> contact;
 
     @DBRef
-    @JsonIgnore
+    // @JsonIgnore REMOVIDO — categories precisa chegar no frontend
     private List<Category> categories;
 }

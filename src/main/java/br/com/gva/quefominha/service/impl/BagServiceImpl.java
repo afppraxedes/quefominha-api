@@ -2,7 +2,6 @@ package br.com.gva.quefominha.service.impl;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,9 +15,6 @@ import br.com.gva.quefominha.repositories.BagRepository;
 import br.com.gva.quefominha.service.BagService;
 import lombok.Getter;
 
-// CORREÇÃO @SuppressWarnings: removida a supressão em nível de classe.
-// Os castings inevitáveis pela assinatura genérica do ServiceUtil
-// são marcados pontualmente com @SuppressWarnings("unchecked") inline.
 @Service
 public class BagServiceImpl implements BagService {
 
@@ -29,18 +25,16 @@ public class BagServiceImpl implements BagService {
     @Override
     @SuppressWarnings("unchecked")
     public <DTO> List<DTO> findAll() {
-        BagSavedDto dto = new BagSavedDto();
-        return getBagRepository().findAll().stream()
-                .map(entity -> (DTO) populateDto(entity, dto))
-                .collect(Collectors.toList());
+        return (List<DTO>) getBagRepository().findAll().stream()
+                .map(entity -> populateDto(entity, new BagSavedDto()))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <DTO> DTO findById(String id) {
-        BagSavedDto dto = new BagSavedDto();
         Bag entity = localFindById(id);
-        return (DTO) populateDto(entity, dto);
+        return (DTO) populateDto(entity, new BagSavedDto());
     }
 
     private Bag localFindById(String id) {
@@ -82,17 +76,11 @@ public class BagServiceImpl implements BagService {
         return getBagRepository().existsById(id);
     }
 
-    /**
-     * CORREÇÃO findPage: implementação funcional substituindo o retorno null anterior.
-     * Usa o método buildPageRequest() herdado de ServiceUtil para padronização.
-     * O MongoRepository já oferece findAll(Pageable) nativamente.
-     */
     @Override
     @SuppressWarnings("unchecked")
     public <DTO> Page<DTO> findPage(Integer page, Integer linePerPage, String direction, String orderBy) {
         PageRequest pageRequest = buildPageRequest(page, linePerPage, direction, orderBy);
-        BagSavedDto dto = new BagSavedDto();
         return (Page<DTO>) getBagRepository().findAll(pageRequest)
-                .map(entity -> populateDto(entity, dto));
+                .map(entity -> populateDto(entity, new BagSavedDto()));
     }
 }
